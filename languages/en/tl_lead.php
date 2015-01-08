@@ -13,11 +13,12 @@
 /**
  * Fields
  */
-$GLOBALS['TL_LANG']['tl_lead']['form_id']       = array('Source form');
-$GLOBALS['TL_LANG']['tl_lead']['master_id']     = array('Master form');
-$GLOBALS['TL_LANG']['tl_lead']['language']      = array('Language');
-$GLOBALS['TL_LANG']['tl_lead']['created']       = array('Received');
-$GLOBALS['TL_LANG']['tl_lead']['member']        = array('Member');
+$GLOBALS['TL_LANG']['tl_lead']['form_id']           = array('Source form');
+$GLOBALS['TL_LANG']['tl_lead']['master_id']         = array('Master form');
+$GLOBALS['TL_LANG']['tl_lead']['language']          = array('Language');
+$GLOBALS['TL_LANG']['tl_lead']['created']           = array('Received');
+$GLOBALS['TL_LANG']['tl_lead']['member']            = array('Member');
+$GLOBALS['TL_LANG']['tl_lead']['notification_list'] = array('Notification', 'Please choose the notification to send.');
 
 
 /**
@@ -25,8 +26,7 @@ $GLOBALS['TL_LANG']['tl_lead']['member']        = array('Member');
  */
 $GLOBALS['TL_LANG']['tl_lead']['delete']            = array('Delete lead', 'Delete lead record ID %s');
 $GLOBALS['TL_LANG']['tl_lead']['show']              = array('Lead details', 'Show details of lead ID %s');
-$GLOBALS['TL_LANG']['tl_lead']['send_notification'] = array('Send notification', 'Send notification of lead ID %s');
-$GLOBALS['TL_LANG']['tl_lead']['notification']      = array('Notification', 'Please choose the notification to send.');
+$GLOBALS['TL_LANG']['tl_lead']['notification']      = array('Send notification', 'Send notification of lead ID %s');
 $GLOBALS['TL_LANG']['tl_lead']['export']            = array('Export', 'Downloads leads as file');
 $GLOBALS['TL_LANG']['tl_lead']['export_config']     = array('Configuration', 'Define export configuration');
 $GLOBALS['TL_LANG']['tl_lead']['export_csv']        = array('as CSV', '');

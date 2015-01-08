@@ -209,7 +209,7 @@ class tl_lead extends Backend
         }
 
         $GLOBALS['TL_DCA']['tl_lead']['list']['operations']['notification'] = array(
-            'label' => &$GLOBALS['TL_LANG']['tl_lead']['send_notification'],
+            'label' => &$GLOBALS['TL_LANG']['tl_lead']['notification'],
             'href'  => 'key=notification',
             'icon'  => 'system/modules/notification_center/assets/notification.png',
         );
@@ -295,7 +295,7 @@ class tl_lead extends Backend
 <input type="hidden" name="REQUEST_TOKEN" value="'.REQUEST_TOKEN.'">
 
 <div class="tl_tbox">
-  <h3><label for="notification">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][0].'</label></h3>
+  <h3><label for="notification">'.$GLOBALS['TL_LANG']['tl_lead']['notification_list'][0].'</label></h3>
   <select name="notification" id="notification" class="tl_select" onfocus="Backend.getScrollOffset()">';
 
         // Generate options
@@ -305,7 +305,7 @@ class tl_lead extends Backend
 
         $return .= '
   </select>
-  <p class="tl_help tl_tip">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][1].'</p>
+  <p class="tl_help tl_tip">'.$GLOBALS['TL_LANG']['tl_lead']['notification_list'][1].'</p>
 </div>
 
 </div>
