@@ -204,7 +204,7 @@ class tl_lead extends Backend
         }
 
         // Check if there are any notifications
-        if (\NotificationCenter\Model\Notification::findByType('core_form') === null) {
+        if (\NotificationCenter\Model\Notification::findBy('type', 'core_form') === null) {
             return;
         }
 
@@ -228,7 +228,7 @@ class tl_lead extends Backend
             $this->redirect('contao/main.php?act=error');
         }
 
-        $notificationsCollection = \NotificationCenter\Model\Notification::findByType('core_form');
+        $notificationsCollection = \NotificationCenter\Model\Notification::findBy('type', 'core_form');
 
         if ($notificationsCollection === null) {
             $this->redirect('contao/main.php?act=error');
