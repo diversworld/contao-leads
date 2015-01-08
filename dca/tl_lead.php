@@ -256,7 +256,7 @@ class tl_lead extends Backend
             }
 
             foreach ($ids as $id) {
-                if (LeadsNotification::send(\Input::get('id'), $form, $notification)) {
+                if (LeadsNotification::send($id, $form, $notification)) {
                     \Message::addConfirmation(
                         sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], $id)
                     );
