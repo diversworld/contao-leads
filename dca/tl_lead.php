@@ -253,6 +253,7 @@ class tl_lead extends Backend
                 $this->reload();
             }
 
+            /** @var \NotificationCenter\Model\Notification $notification */
             $notification = \NotificationCenter\Model\Notification::findByPk(\Input::post('notification'));
 
             if ($notification === null) {
@@ -262,7 +263,7 @@ class tl_lead extends Backend
             $data   = array();
             $labels = array();
 
-            $leadDataCollection = $this->Database->prepare("SELECT *, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
+            $leadDataCollection = \Database::getInstance()->prepare("SELECT *, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
                 ->execute(\Input::get('id'));
 
             // Generate the form data and labels
@@ -274,7 +275,7 @@ class tl_lead extends Backend
             $formHelper = new \NotificationCenter\tl_form();
 
             // Send the notification
-            $notification->send($formHelper->generateTokens($data, $form->row(), $labels));
+            $notification->send($formHelper->generateTokens($data, $form->row(), array(), $labels));
 
             // Display a confirmation message and redirect back
             \Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], \Input::get('id')));
