@@ -215,7 +215,6 @@ class tl_lead extends Backend
     public function sendNotification()
     {
         if (!\Input::get('master')
-            || \Input::get('key') != 'notification'
             || !\LeadsNotification::available()
         ) {
             \Controller::redirect('contao/main.php?act=error');
