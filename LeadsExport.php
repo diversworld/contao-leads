@@ -24,10 +24,11 @@ class LeadsExport
 
     /**
      * Export data to CSV
-     * @param object
-     * @param array
+     *
+     * @param object $objConfig
+     * @param array  $arrIds
      */
-    public function exportCsv($objConfig, $arrIds=null)
+    public function exportCsv($objConfig, $arrIds = null)
     {
         $objReader = $this->getExportData($objConfig, $arrIds);
 
@@ -50,10 +51,11 @@ class LeadsExport
 
     /**
      * Export data to XLS
-     * @param object
-     * @param array
+     *
+     * @param object $objConfig
+     * @param array  $arrIds
      */
-    public function exportXls($objConfig, $arrIds=null)
+    public function exportXls($objConfig, $arrIds = null)
     {
         $objReader = $this->getExportData($objConfig, $arrIds);
 
@@ -77,10 +79,11 @@ class LeadsExport
 
     /**
      * Export data to XLSX
-     * @param object
-     * @param array
+     *
+     * @param object $objConfig
+     * @param array  $arrIds
      */
-    public function exportXlsx($objConfig, $arrIds=null)
+    public function exportXlsx($objConfig, $arrIds = null)
     {
         $objReader = $this->getExportData($objConfig, $arrIds);
 
@@ -104,7 +107,9 @@ class LeadsExport
 
     /**
      * Get the filename from config
-     * @param object
+     *
+     * @param object $objConfig
+     *
      * @return string
      */
     protected function getFilename($objConfig)
@@ -113,8 +118,7 @@ class LeadsExport
             return '';
         }
 
-        $arrTokens = array
-        (
+        $arrTokens = array(
             'time' => \Date::parse($GLOBALS['TL_CONFIG']['timeFormat']),
             'date' => \Date::parse($GLOBALS['TL_CONFIG']['dateFormat']),
             'datim' => \Date::parse($GLOBALS['TL_CONFIG']['datimFormat']),
@@ -136,8 +140,10 @@ class LeadsExport
 
     /**
      * Generate the export row
-     * @param array
-     * @param object
+     *
+     * @param array  $arrData
+     * @param object $objConfig
+     *
      * @return array
      */
     protected static function generateExportRow($arrData, $objConfig)
@@ -297,11 +303,13 @@ class LeadsExport
 
     /**
      * Get the export fields
-     * @param object
-     * @param array
+     *
+     * @param object $objConfig
+     * @param array  $arrIds
+     *
      * @return object|null
      */
-    protected function getExportData($objConfig, $arrIds=null)
+    protected function getExportData($objConfig, $arrIds = null)
     {
         $arrLimitFields = array();
 

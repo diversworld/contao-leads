@@ -159,8 +159,7 @@ class tl_lead extends Backend
         $arrOperations = array();
 
         while ($objConfigs->next()) {
-            $arrOperations['export_' . $objConfigs->id] = array
-            (
+            $arrOperations['export_' . $objConfigs->id] = array(
                 'label'         => $objConfigs->name,
                 'href'          => 'key=export&amp;config=' . $objConfigs->id,
                 'class'         => 'leads-export header_export_excel',
@@ -179,7 +178,7 @@ class tl_lead extends Backend
     public function checkPermission($dc)
     {
         if (\Input::get('master') == '') {
-            $this->redirect('contao/main.php?act=error');
+            \Controller::redirect('contao/main.php?act=error');
         }
 
         $objUser = \BackendUser::getInstance();
@@ -190,7 +189,7 @@ class tl_lead extends Backend
 
         if (!is_array($objUser->forms) || !in_array(\Input::get('master'), $objUser->forms)) {
             \System::log('Not enough permissions to access leads ID "'.\Input::get('master').'"', __METHOD__, TL_ERROR);
-            $this->redirect('contao/main.php?act=error');
+            \Controller::redirect('contao/main.php?act=error');
         }
     }
 
@@ -225,13 +224,13 @@ class tl_lead extends Backend
             || \Input::get('key') != 'notification'
             || !\Leads::supportNotificationCenter()
         ) {
-            $this->redirect('contao/main.php?act=error');
+            \Controller::redirect('contao/main.php?act=error');
         }
 
         $notificationsCollection = \NotificationCenter\Model\Notification::findBy('type', 'core_form');
 
         if ($notificationsCollection === null) {
-            $this->redirect('contao/main.php?act=error');
+            \Controller::redirect('contao/main.php?act=error');
         }
 
         $notifications = array();
@@ -244,20 +243,20 @@ class tl_lead extends Backend
         // Process the form
         if (\Input::post('FORM_SUBMIT') == 'tl_leads_notification') {
             if (!isset($notifications[\Input::post('notification')])) {
-                $this->reload();
+                \Controller::reload();
             }
 
             $form = \FormModel::findByPk(\Input::get('master'));
 
             if ($form === null) {
-                $this->reload();
+                \Controller::reload();
             }
 
             /** @var \NotificationCenter\Model\Notification $notification */
             $notification = \NotificationCenter\Model\Notification::findByPk(\Input::post('notification'));
 
             if ($notification === null) {
-                $this->reload();
+                \Controller::reload();
             }
 
             $data   = array();
@@ -279,7 +278,7 @@ class tl_lead extends Backend
 
             // Display a confirmation message and redirect back
             \Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], \Input::get('id')));
-            $this->redirect($this->getReferer());
+            \Controller::redirect($this->getReferer());
         }
 
         $return = '
@@ -334,16 +333,14 @@ class tl_lead extends Backend
         $objForm = $this->Database->prepare("SELECT * FROM tl_form WHERE id=?")->execute($row['master_id']);
 
         // No form found, we can't format the label
-        if (!$objForm->numRows)
-        {
+        if (!$objForm->numRows) {
             return $label;
         }
 
         $arrTokens = array('created'=>$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $row['created']));
         $objData = $this->Database->prepare("SELECT * FROM tl_lead_data WHERE pid=?")->execute($row['id']);
 
-        while ($objData->next())
-        {
+        while ($objData->next()) {
             $varValue = deserialize($objData->value);
             $arrTokens[$objData->name] = is_array($varValue) ? implode(', ', $varValue) : $varValue;
         }
@@ -392,8 +389,7 @@ class tl_lead extends Backend
         $i = 0;
         $rows = '';
 
-        while ($objData->next())
-        {
+        while ($objData->next()) {
             $rows .= '
   <tr>
     <td' . ($i%2 ? ' class="tl_bg"' : '') . '><span class="tl_label">' . $objData->name . ': </span></td>
@@ -450,7 +446,7 @@ class tl_lead extends Backend
         $intConfig = $this->Input->get('config');
 
         if (!$intConfig) {
-            $this->redirect('contao/main.php?act=error');
+            \Controller::redirect('contao/main.php?act=error');
         }
 
         $arrIds = is_array($GLOBALS['TL_DCA']['tl_lead']['list']['sorting']['root']) ? $GLOBALS['TL_DCA']['tl_lead']['list']['sorting']['root'] : null;
@@ -470,7 +466,7 @@ class tl_lead extends Backend
             $arrIds = \Input::post('IDS');
 
             if (empty($arrIds)) {
-                $this->reload();
+                \Controller::reload();
             }
 
             $this->import('Leads');
