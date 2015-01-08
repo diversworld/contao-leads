@@ -203,14 +203,13 @@ class tl_lead extends Backend
             return;
         }
 
-        $form = \FormModel::findByPk(\Input::get('master'));
-
-        if ($form === null || \NotificationCenter\Model\Notification::findByPk($form->nc_notification) === null) {
+        // Check if there are any notifications
+        if (\NotificationCenter\Model\Notification::findByType('core_form') === null) {
             return;
         }
 
         $GLOBALS['TL_DCA']['tl_lead']['list']['operations']['notification'] = array(
-            'label' => &$GLOBALS['TL_LANG']['tl_lead']['notification'],
+            'label' => &$GLOBALS['TL_LANG']['tl_lead']['send_notification'],
             'href'  => 'key=notification',
             'icon'  => 'system/modules/notification_center/assets/notification.png',
         );
@@ -229,38 +228,97 @@ class tl_lead extends Backend
             $this->redirect('contao/main.php?act=error');
         }
 
-        $form = \FormModel::findByPk(\Input::get('master'));
+        $notificationsCollection = \NotificationCenter\Model\Notification::findByType('core_form');
 
-        if ($form === null) {
+        if ($notificationsCollection === null) {
             $this->redirect('contao/main.php?act=error');
         }
 
-        $notification = \NotificationCenter\Model\Notification::findByPk($form->nc_notification);
+        $notifications = array();
 
-        if ($notification === null) {
-            $this->redirect('contao/main.php?act=error');
+        // Generate the notifications
+        while ($notificationsCollection->next()) {
+            $notifications[$notificationsCollection->id] = $notificationsCollection->title;
         }
 
-        $data = array();
-        $labels = array();
+        // Process the form
+        if (\Input::post('FORM_SUBMIT') == 'tl_leads_notification') {
+            if (!isset($notifications[\Input::post('notification')])) {
+                $this->reload();
+            }
 
-        $leadDataCollection = $this->Database->prepare("SELECT *, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
-            ->execute(\Input::get('id'));
+            $form = \FormModel::findByPk(\Input::get('master'));
 
-        // Generate the form data and labels
-        while ($leadDataCollection->next()) {
-            $data[$leadDataCollection->name] = $leadDataCollection->label;
-            $labels[$leadDataCollection->name] = $leadDataCollection->fieldLabel ?: $leadDataCollection->name;
+            if ($form === null) {
+                $this->reload();
+            }
+
+            $notification = \NotificationCenter\Model\Notification::findByPk(\Input::post('notification'));
+
+            if ($notification === null) {
+                $this->reload();
+            }
+
+            $data   = array();
+            $labels = array();
+
+            $leadDataCollection = $this->Database->prepare("SELECT *, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
+                ->execute(\Input::get('id'));
+
+            // Generate the form data and labels
+            while ($leadDataCollection->next()) {
+                $data[$leadDataCollection->name]   = $leadDataCollection->label;
+                $labels[$leadDataCollection->name] = $leadDataCollection->fieldLabel ?: $leadDataCollection->name;
+            }
+
+            $formHelper = new \NotificationCenter\tl_form();
+
+            // Send the notification
+            $notification->send($formHelper->generateTokens($data, $form->row(), $labels));
+
+            // Display a confirmation message and redirect back
+            \Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], \Input::get('id')));
+            $this->redirect($this->getReferer());
         }
 
-        $formHelper = new \NotificationCenter\tl_form();
+        $return = '
+<div id="tl_buttons">
+<a href="'.$this->getReferer(true).'" class="header_back" title="'.specialchars($GLOBALS['TL_LANG']['MSC']['backBTTitle']).'" accesskey="b">'.$GLOBALS['TL_LANG']['MSC']['backBT'].'</a>
+</div>
 
-        // Send the notification
-        $notification->send($formHelper->generateTokens($data, $form->row(), $labels));
+<h2 class="sub_headline">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][0].'</h2>
+'.\Message::generate().'
+<form action="'.ampersand(\Environment::get('request'), true).'" id="tl_leads_notification" class="tl_form" method="post">
+<div class="tl_formbody_edit">
+<input type="hidden" name="FORM_SUBMIT" value="tl_leads_notification">
+<input type="hidden" name="REQUEST_TOKEN" value="'.REQUEST_TOKEN.'">
 
-        // Display a confirmation message and redirect back
-        \Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], \Input::get('id')));
-        $this->redirect($this->getReferer());
+<div class="tl_tbox">
+  <h3><label for="notification">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][0].'</label></h3>
+  <select name="notification" id="notification" class="tl_select" onfocus="Backend.getScrollOffset()">';
+
+        // Generate options
+        foreach ($notifications as $id => $name) {
+            $return .= '<option value="' . $id . '">' . $name . '</option>';
+        }
+
+        $return .= '
+  </select>
+  <p class="tl_help tl_tip">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][1].'</p>
+</div>
+
+</div>
+
+<div class="tl_formbody_submit">
+
+<div class="tl_submit_container">
+  <input type="submit" name="save" id="save" class="tl_submit" accesskey="s" value="'.specialchars($GLOBALS['TL_LANG']['tl_lead']['notification'][0]).'">
+</div>
+
+</div>
+</form>';
+
+        return $return;
     }
 
 
