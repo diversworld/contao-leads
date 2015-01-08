@@ -242,43 +242,36 @@ class tl_lead extends Backend
 
         // Process the form
         if (\Input::post('FORM_SUBMIT') == 'tl_leads_notification') {
-            if (!isset($notifications[\Input::post('notification')])) {
+
+            /**
+             * @var \FormModel $form
+             * @var \NotificationCenter\Model\Notification $notification
+             */
+            if (!isset($notifications[\Input::post('notification')])
+                || !is_array(\Input::post('IDS'))
+                || ($form = \FormModel::findByPk(\Input::get('master'))) === null
+                || ($notification = \NotificationCenter\Model\Notification::findByPk(\Input::post('notification'))) === null
+            ) {
                 \Controller::reload();
             }
 
-            $form = \FormModel::findByPk(\Input::get('master'));
+            foreach (\Input::post('IDS') as $id) {
+                $id = (int) $id;
 
-            if ($form === null) {
-                \Controller::reload();
+                if (Leads::sendNotification(\Input::get('id'), $form, $notification)) {
+                    \Message::addConfirmation(
+                        sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], $id)
+                    );
+                }
             }
 
-            /** @var \NotificationCenter\Model\Notification $notification */
-            $notification = \NotificationCenter\Model\Notification::findByPk(\Input::post('notification'));
-
-            if ($notification === null) {
-                \Controller::reload();
-            }
-
-            $data   = array();
-            $labels = array();
-
-            $leadDataCollection = \Database::getInstance()->prepare("SELECT name, value, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
-                ->execute(\Input::get('id'));
-
-            // Generate the form data and labels
-            while ($leadDataCollection->next()) {
-                $data[$leadDataCollection->name]   = $leadDataCollection->value;
-                $labels[$leadDataCollection->name] = $leadDataCollection->fieldLabel ?: $leadDataCollection->name;
-            }
-
-            $formHelper = new \NotificationCenter\tl_form();
-
-            // Send the notification
-            $notification->send($formHelper->generateTokens($data, $form->row(), array(), $labels));
-
-            // Display a confirmation message and redirect back
-            \Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], \Input::get('id')));
             \Controller::redirect($this->getReferer());
+        }
+
+        if (\Input::post('IDS')) {
+            $ids = '<input type="hidden" name="IDS[]" value="' . implode('"><input type="hidden" name="IDS[]" value="', \Input::post('IDS')) . '">';
+        } else {
+            $ids = '<input type="hidden" name="IDS[]" value="'.\Input::get('id').'">';
         }
 
         $return = '
@@ -288,10 +281,11 @@ class tl_lead extends Backend
 
 <h2 class="sub_headline">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][0].'</h2>
 '.\Message::generate().'
-<form action="'.ampersand(\Environment::get('request'), true).'" id="tl_leads_notification" class="tl_form" method="post">
+<form action="'.ampersand(\Controller::addToUrl('key=notification'), true).'" id="tl_leads_notification" class="tl_form" method="post">
 <div class="tl_formbody_edit">
 <input type="hidden" name="FORM_SUBMIT" value="tl_leads_notification">
 <input type="hidden" name="REQUEST_TOKEN" value="'.REQUEST_TOKEN.'">
+' . $ids . '
 
 <div class="tl_tbox">
   <h3><label for="notification">'.$GLOBALS['TL_LANG']['tl_lead']['notification_list'][0].'</label></h3>
@@ -469,6 +463,10 @@ class tl_lead extends Backend
                 \Controller::reload();
             }
 
+            if (\Input::post('notification')) {
+                $this->sendNotification();
+            }
+
             $this->import('Leads');
 
             foreach ($arrConfigs as $config) {
@@ -483,6 +481,12 @@ class tl_lead extends Backend
         // Generate buttons
         foreach ($arrConfigs as $config) {
             $arrButtons['export_' . $config['id']] = '<input type="submit" name="export_' . $config['id'] . '" id="export_' . $config['id'] . '" class="tl_submit" value="'.specialchars($GLOBALS['TL_LANG']['tl_lead']['export'][0] . ' "' . $config['name'] . '"').'">';
+        }
+
+        if (\Leads::supportNotificationCenter()
+            && (\NotificationCenter\Model\Notification::findBy('type', 'core_form') !== null)
+        ) {
+            $arrButtons['notification'] = '<input type="submit" name="notification" id="notification" class="tl_submit" value="' . specialchars($GLOBALS['TL_LANG']['tl_lead']['notification'][0]) . '">';
         }
 
         return $arrButtons;
