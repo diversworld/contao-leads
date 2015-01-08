@@ -248,9 +248,14 @@ class tl_lead extends Backend
                 \Controller::reload();
             }
 
-            foreach (\Input::post('IDS') as $id) {
-                $id = (int) $id;
+            if (\Input::get('id')) {
+                $ids = array((int) \Input::get('id'));
+            } else {
+                $session = $this->Session->getData();
+                $ids = array_map('intval', $session['CURRENT']['IDS']);
+            }
 
+            foreach ($ids as $id) {
                 if (LeadsNotification::send(\Input::get('id'), $form, $notification)) {
                     \Message::addConfirmation(
                         sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], $id)
@@ -261,51 +266,7 @@ class tl_lead extends Backend
             \Controller::redirect($this->getReferer());
         }
 
-        if (\Input::post('IDS')) {
-            $ids = '<input type="hidden" name="IDS[]" value="' . implode('"><input type="hidden" name="IDS[]" value="', \Input::post('IDS')) . '">';
-        } else {
-            $ids = '<input type="hidden" name="IDS[]" value="'.\Input::get('id').'">';
-        }
-
-        $return = '
-<div id="tl_buttons">
-<a href="'.$this->getReferer(true).'" class="header_back" title="'.specialchars($GLOBALS['TL_LANG']['MSC']['backBTTitle']).'" accesskey="b">'.$GLOBALS['TL_LANG']['MSC']['backBT'].'</a>
-</div>
-
-<h2 class="sub_headline">'.$GLOBALS['TL_LANG']['tl_lead']['notification'][0].'</h2>
-'.\Message::generate().'
-<form action="'.ampersand(\Controller::addToUrl('key=notification'), true).'" id="tl_leads_notification" class="tl_form" method="post">
-<div class="tl_formbody_edit">
-<input type="hidden" name="FORM_SUBMIT" value="tl_leads_notification">
-<input type="hidden" name="REQUEST_TOKEN" value="'.REQUEST_TOKEN.'">
-' . $ids . '
-
-<div class="tl_tbox">
-  <h3><label for="notification">'.$GLOBALS['TL_LANG']['tl_lead']['notification_list'][0].'</label></h3>
-  <select name="notification" id="notification" class="tl_select" onfocus="Backend.getScrollOffset()">';
-
-        // Generate options
-        foreach ($notifications as $id => $name) {
-            $return .= '<option value="' . $id . '">' . $name . '</option>';
-        }
-
-        $return .= '
-  </select>
-  <p class="tl_help tl_tip">'.$GLOBALS['TL_LANG']['tl_lead']['notification_list'][1].'</p>
-</div>
-
-</div>
-
-<div class="tl_formbody_submit">
-
-<div class="tl_submit_container">
-  <input type="submit" name="save" id="save" class="tl_submit" accesskey="s" value="'.specialchars($GLOBALS['TL_LANG']['tl_lead']['notification'][0]).'">
-</div>
-
-</div>
-</form>';
-
-        return $return;
+        return LeadsNotification::generateForm($notifications, array(\Input::get('id')));
     }
 
 
@@ -457,7 +418,7 @@ class tl_lead extends Backend
             }
 
             if (\Input::post('notification')) {
-                $this->sendNotification();
+                \Controller::redirect(\Backend::addToUrl('key=notification'));
             }
 
             $this->import('Leads');
