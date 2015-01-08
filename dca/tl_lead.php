@@ -144,6 +144,11 @@ $GLOBALS['TL_DCA']['tl_lead'] = array
 class tl_lead extends Backend
 {
 
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     /**
      * Load the export configs
      */
