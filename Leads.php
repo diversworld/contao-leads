@@ -17,6 +17,16 @@ class Leads extends Controller
 {
 
     /**
+     * Return true if the notification_center is installed and can be supported
+     *
+     * @return bool
+     */
+    public static function supportNotificationCenter()
+    {
+        return in_array('notification_center', \Config::getInstance()->getActiveModules());
+    }
+
+    /**
      * Prepare a form value for storage in lead table
      * @param mixed
      * @param Database_Result

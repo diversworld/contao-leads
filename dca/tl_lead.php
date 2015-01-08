@@ -28,6 +28,7 @@ $GLOBALS['TL_DCA']['tl_lead'] = array
         (
             array('tl_lead', 'loadExportConfigs'),
             array('tl_lead', 'checkPermission'),
+            array('tl_lead', 'addNotificationCenterSupport'),
         ),
     ),
 
@@ -191,6 +192,75 @@ class tl_lead extends Backend
             \System::log('Not enough permissions to access leads ID "'.\Input::get('master').'"', __METHOD__, TL_ERROR);
             $this->redirect('contao/main.php?act=error');
         }
+    }
+
+    /**
+     * Add the notification center support
+     */
+    public function addNotificationCenterSupport()
+    {
+        if (!\Leads::supportNotificationCenter()) {
+            return;
+        }
+
+        $form = \FormModel::findByPk(\Input::get('master'));
+
+        if ($form === null || \NotificationCenter\Model\Notification::findByPk($form->nc_notification) === null) {
+            return;
+        }
+
+        $GLOBALS['TL_DCA']['tl_lead']['list']['operations']['notification'] = array(
+            'label' => &$GLOBALS['TL_LANG']['tl_lead']['notification'],
+            'href'  => 'key=notification',
+            'icon'  => 'system/modules/notification_center/assets/notification.png',
+        );
+    }
+
+    /**
+     * Send the notification
+     */
+    public function sendNotification()
+    {
+        if (!\Input::get('id')
+            || !\Input::get('master')
+            || \Input::get('key') != 'notification'
+            || !\Leads::supportNotificationCenter()
+        ) {
+            $this->redirect('contao/main.php?act=error');
+        }
+
+        $form = \FormModel::findByPk(\Input::get('master'));
+
+        if ($form === null) {
+            $this->redirect('contao/main.php?act=error');
+        }
+
+        $notification = \NotificationCenter\Model\Notification::findByPk($form->nc_notification);
+
+        if ($notification === null) {
+            $this->redirect('contao/main.php?act=error');
+        }
+
+        $data = array();
+        $labels = array();
+
+        $leadDataCollection = $this->Database->prepare("SELECT *, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
+            ->execute(\Input::get('id'));
+
+        // Generate the form data and labels
+        while ($leadDataCollection->next()) {
+            $data[$leadDataCollection->name] = $leadDataCollection->label;
+            $labels[$leadDataCollection->name] = $leadDataCollection->fieldLabel ?: $leadDataCollection->name;
+        }
+
+        $formHelper = new \NotificationCenter\tl_form();
+
+        // Send the notification
+        $notification->send($formHelper->generateTokens($data, $form->row(), $labels));
+
+        // Display a confirmation message and redirect back
+        \Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_lead']['notification_confirm'], \Input::get('id')));
+        $this->redirect($this->getReferer());
     }
 
 
