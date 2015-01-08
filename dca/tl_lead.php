@@ -263,12 +263,12 @@ class tl_lead extends Backend
             $data   = array();
             $labels = array();
 
-            $leadDataCollection = \Database::getInstance()->prepare("SELECT *, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
+            $leadDataCollection = \Database::getInstance()->prepare("SELECT name, value, (SELECT label FROM tl_form_field WHERE tl_form_field.id=tl_lead_data.field_id) AS fieldLabel FROM tl_lead_data WHERE pid=?")
                 ->execute(\Input::get('id'));
 
             // Generate the form data and labels
             while ($leadDataCollection->next()) {
-                $data[$leadDataCollection->name]   = $leadDataCollection->label;
+                $data[$leadDataCollection->name]   = $leadDataCollection->value;
                 $labels[$leadDataCollection->name] = $leadDataCollection->fieldLabel ?: $leadDataCollection->name;
             }
 
