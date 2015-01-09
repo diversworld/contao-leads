@@ -22,7 +22,7 @@ class LeadsNotification
      */
     public static function available($checkOptions = false)
     {
-        $result = in_array('notification_center', \Config::getInstance()->getActiveModules());
+        $result = in_array('notification_center', \ModuleLoader::getActive());
 
         if ($result
             && $checkOptions
